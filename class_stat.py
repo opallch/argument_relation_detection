@@ -4,6 +4,7 @@ usage:
 '''
 import argparse
 import os
+import numpy as np
 import pandas as pd
 
 
@@ -15,14 +16,15 @@ def show_class_distribution(df_csv_path):
 
     df = pd.read_csv(df_csv_path)
     for idx, row in df.iterrows():
-        if row.label == 'Support':
-            n_support += 1
-        elif row.label == 'Refute':
-            n_refute += 1
-        elif row.label == 'Comment':
-            n_comment += 1
-        elif row.label == 'Unrelated':
-            n_unrelated += 1
+        if isinstance(row.raw_text, str): # if the raw text of the tweet is available
+            if row.label == 'Support':
+                n_support += 1
+            elif row.label == 'Refute':
+                n_refute += 1
+            elif row.label == 'Comment':
+                n_comment += 1
+            elif row.label == 'Unrelated':
+                n_unrelated += 1
 
     print(f'file: {os.path.basename(df_csv_path)}')
     print(f'support: {n_support}\nrefute: {n_refute}\ncomment: {n_comment}\nunrelated: {n_unrelated}')

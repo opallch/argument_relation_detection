@@ -1,3 +1,4 @@
+'''Scipt for retrieving tweets from the tweet-ids given in the UKP Corpus.'''
 import os
 import pandas as pd
 import tweepy
@@ -53,7 +54,7 @@ def retrieve_tweet(client, annotation_from='expert'):
         print(f'{n_not_found} tweets not found.')
 
     df['raw_text'] = all_tweets_in_text
-    df.to_csv(os.path.join('./data', f'{annotation_from}_annotation.csv'))
+    df.to_csv(os.path.join('./annotated_data', f'{annotation_from}_annotation.csv'))
 
 if __name__ == '__main__':
     retrieve_tweet(client=CLIENT, annotation_from='student')

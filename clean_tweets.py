@@ -1,8 +1,9 @@
 '''Clean the raw text of the tweets in the following ways:
 url: removed 
 hashtag: #-sign removed (text remains)
-tagged username: removed if it is at the beginning of comment
-emoji: not yet handled
+tagged username: 
+    - removed if it is at the beginning of comment
+    - 
 
 usage:
 `python3 clean_tweets.py path/to/annotated/data/csv/file`
@@ -16,15 +17,16 @@ import pandas as pd
 
 
 URL_REGEX = 'http\S+'
-USER_REGEX_BEGIN = '^@\S+' # later: also cover e.g. RT @username
+USER_REGEX_BEGIN = '^(RT\s)*@\S+' # later: also cover e.g. RT @username
 USER_REGEX = '@\S+'
 HASHTAG_REGEX = '#'
 
 
 def clean(input_string):
-    if isinstance(input_string, str):
+    if isinstance(input_string, str): # if tweet is retrieved
         result = re.sub(URL_REGEX, '', input_string)
         result = re.sub(USER_REGEX_BEGIN, '', result)
+        result = re.sub(USER_REGEX, '<USERNAME>', result)
         result = re.sub(HASHTAG_REGEX, '', result)
         result = re.sub('\s\s', ' ', result)
     else:
@@ -49,5 +51,7 @@ if __name__ == "__main__":
     ## ONLY FOR TRIAL
     # example1 = 'Corona-Krise: „Das geht zu weit“ – Linke und Grüne kritisieren Reiseverbote https://t.co/22jIVuXBKE via @welt Ausgerechnet!!! Ganz ehrlich??? Ihr seid nicht mehr dicht im Kopp... Bei Stand von wievielen Toten geht euch das nicht mehr zu weit??? Flachzangen!'
     # example2 = '@nulleberg Wenn man sagen könnte, dass @jensspahn rechtzeitig wichtige Maßnahmen gegen das #coronavirus in die Wege leiten wollte, die dann an den Ländern gescheitert wären, könnte ich das nachvollziehen. So aber scheint es um ganz andere Dinge zu gehen 🤔'
+    # example3 = 'RT @mattari_illust: #ドラゴンボール https://t.co/O7GBk0wNX9'
     # print(clean(example1))
     # print(clean(example2))
+    # print(clean(example3))

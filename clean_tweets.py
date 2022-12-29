@@ -2,8 +2,8 @@
 url: removed 
 hashtag: #-sign removed (text remains)
 tagged username: 
-    - removed if it is at the beginning of comment
-    - 
+    - removed if it is at the beginning of comment or in the case of "RT @username"
+    - otherwise the usernames are replaced by the tag <USERNAME>
 
 usage:
 `python3 clean_tweets.py path/to/annotated/data/csv/file`
@@ -17,7 +17,7 @@ import pandas as pd
 
 
 URL_REGEX = 'http\S+'
-USER_REGEX_BEGIN = '^(RT\s)*@\S+' # later: also cover e.g. RT @username
+USER_REGEX_BEGIN = '^(RT\s)*@\S+'
 USER_REGEX = '@\S+'
 HASHTAG_REGEX = '#'
 

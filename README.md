@@ -1,4 +1,12 @@
 # Argument Relation Detection 
+For a seminar project in the scope of the Argument Mining seminar in 
+Wintersemester 2022/23 at the University of Potsdam, we recreate the study 
+of ___ working with the Opinion Mining Corpus on German Tweets about the 
+Covid-19 Pandemic.
+
+Link to corpus:   
+https://tudatalib.ulb.tu-darmstadt.de/handle/tudatalib/2780
+
 ## Data Preprocessing
 The preprocessed data can be found in `annotated_data/`. Files with suffix `_clean` indicates that the raw text of the tweets are already cleaned (e.g. URLs are removed). The following are the scripts to generate the data in `annotated_data/`:
 - `retrieve_tweets.py`: Retreives tweets from the tweet-ids given in the UKP-Corpus. (Output: DataFrame in csv) 
@@ -10,4 +18,6 @@ The tweets are cleaned in the following ways:
 3. Tagged usernames: 
     - removed if it is at the beginning of comment or in the case of "RT @username"
     - otherwise the usernames are replaced by the tag `<USERNAME>`
-4. Non-german tweets are translated to german by [some tool]
+4. Non-german tweets are translated to German by DeepL (where available) or 
+   GoogleTranslate (for Arabic, Catalan, Korean, Persian, Urdu, Thai and 
+   Telugu)

@@ -47,11 +47,3 @@ if __name__ == "__main__":
     dir_head_tail = os.path.split(args.df_csv_path)
     output_filename = re.sub('.csv', '_clean.csv', dir_head_tail[1])
     df.to_csv(os.path.join(dir_head_tail[0], output_filename))
-    
-    ## ONLY FOR TRIAL
-    # example1 = 'Corona-Krise: „Das geht zu weit“ – Linke und Grüne kritisieren Reiseverbote https://t.co/22jIVuXBKE via @welt Ausgerechnet!!! Ganz ehrlich??? Ihr seid nicht mehr dicht im Kopp... Bei Stand von wievielen Toten geht euch das nicht mehr zu weit??? Flachzangen!'
-    # example2 = '@nulleberg Wenn man sagen könnte, dass @jensspahn rechtzeitig wichtige Maßnahmen gegen das #coronavirus in die Wege leiten wollte, die dann an den Ländern gescheitert wären, könnte ich das nachvollziehen. So aber scheint es um ganz andere Dinge zu gehen 🤔'
-    # example3 = 'RT @mattari_illust: #ドラゴンボール https://t.co/O7GBk0wNX9'
-    # print(clean(example1))
-    # print(clean(example2))
-    # print(clean(example3))

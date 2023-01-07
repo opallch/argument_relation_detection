@@ -5,7 +5,8 @@ import tweepy
 import time
 import sys
 
-UKP_ROOT = 'ukp_covid_corpus/' # directory of the ukp covid tweet corpus
+UKP_ROOT = '../ukp_covid_corpus/' # directory of the ukp covid tweet corpus
+OUTPUT_ROOT = '../corpus/'
 BEARER_TOKEN = '' # replace with your own token
 CLIENT = tweepy.Client(bearer_token=BEARER_TOKEN)
 
@@ -54,7 +55,7 @@ def retrieve_tweet(client, annotation_from='expert'):
         print(f'{n_not_found} tweets not found.')
 
     df['raw_text'] = all_tweets_in_text
-    df.to_csv(os.path.join('./annotated_data', f'{annotation_from}_annotation.csv'))
+    df.to_csv(os.path.join(OUTPUT_ROOT, f'{annotation_from}_annotation.csv'))
 
 if __name__ == '__main__':
     retrieve_tweet(client=CLIENT, annotation_from='student')

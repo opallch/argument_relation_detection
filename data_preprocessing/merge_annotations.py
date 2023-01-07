@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 
-CORPUS_DF_CSV_ROOT = './corpus/'
+CORPUS_DF_CSV_ROOT = '../corpus/tmp/'
 
 dfs_to_be_merged = list()
 for root, dirs, files in os.walk(CORPUS_DF_CSV_ROOT):
@@ -13,4 +13,4 @@ for root, dirs, files in os.walk(CORPUS_DF_CSV_ROOT):
                 )
 corpus_df = pd.concat(dfs_to_be_merged, ignore_index=True)
 corpus_df.drop(columns=['Unnamed: 0'], inplace=True)
-corpus_df.to_csv('./corpus/merged_corpus.csv')
+corpus_df.to_csv('../corpus/merged_corpus.csv')

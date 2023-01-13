@@ -34,8 +34,6 @@ def print_label_proportions(y_train, y_val):
 
 # Read merged_instances
 df = pd.read_csv(CSV_PATH)
-print(df.head)
-print(df.describe())
 
 # Set labels
 labels = np.asarray(df.label)
@@ -53,12 +51,6 @@ print(labels)
 # Get rid of columns we don't need for classification
 df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus", "label"],
                       axis=1)
-
-# feature_vecs = df_selected.to_dict(orient='records')
-# print(feature_vecs)
-
-# vec = DictVectorizer()
-# feature_vecs = vec.fit_transform(feature_vecs).toarray()
 
 feature_vecs = df_selected.to_numpy() # or df_selected.values
 

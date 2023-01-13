@@ -34,8 +34,6 @@ def print_label_proportions(y_train, y_val):
 
 # Read merged_instances
 df = pd.read_csv(CSV_PATH)
-print(df.head)
-print(df.describe())
 
 # Set labels
 labels = np.asarray(df.label)
@@ -51,20 +49,14 @@ print(labels)
 # print(le.inverse_transform(labels))
 
 # Get rid of columns we don't need for classification
-df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus"],
+df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus", "label"],
                       axis=1)
 
-df_features = df_selected.to_dict(orient='records')
-vec = DictVectorizer()
-df_features = vec.fit_transform(df_features).toarray()
-
-# df_features = df_selected
-# print(len(df_features))
-# print(labels)
+feature_vecs = df_selected.to_numpy() # or df_selected.values
 
 # Set the proportion of train and test set
 features_train, features_test, labels_train, labels_test = train_test_split(
- df_features, labels, test_size=0.20, random_state=SEED)
+ feature_vecs, labels, test_size=0.20, random_state=SEED)
 print_label_proportions(labels_train, labels_test)
 
 # Set up DummyClassifier as Baseline
@@ -75,8 +67,8 @@ for strategy in ['most_frequent', 'prior', 'stratified', 'uniform']:
 
     print(f'Trivial baseline accuracy with strategy {strategy} is: {score}')
 
-print(features_train)
-print(labels_train)
+# print(features_train)
+# print(labels_train)
 
 # Set up Gaussian Classifier and train the model
 model = GaussianNB()

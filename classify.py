@@ -1,12 +1,15 @@
 # https://lunalux.io/creating-your-first-machine-learning-classifier-with-sklearn/
+from sklearn import svm
 from sklearn.dummy import DummyClassifier
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.naive_bayes import GaussianNB, MultinomialNB, ComplementNB, \
+    BernoulliNB, CategoricalNB
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder
 
 CSV_PATH = './instances/merged_instances.csv'
@@ -35,16 +38,18 @@ def print_label_proportions(y_train, y_val):
 # Read merged_instances
 df = pd.read_csv(CSV_PATH)
 
-# Set labels
 labels = np.asarray(df.label)
-print(labels)
+
+# Set labels
+labels_list = ["Comment", "Unrelated", "Support", "Refute"]
+print(labels_list)
 
 # Encode labels
 le = LabelEncoder()
-le.fit(labels)
+le.fit(labels_list)
 # apply encoding to labels
-labels = le.transform(labels)
-print(labels)
+labels_list = le.transform(labels_list)
+print(labels_list)
 
 # print(le.inverse_transform(labels))
 
@@ -71,15 +76,29 @@ for strategy in ['most_frequent', 'prior', 'stratified', 'uniform']:
 # print(labels_train)
 
 # Set up Gaussian Classifier and train the model
-model = GaussianNB()
+# model = GaussianNB()
+model = MLPClassifier(verbose=True, random_state=SEED)
+# model = MultinomialNB()
+# model = svm.SVC()
+
 pred = model.fit(features_train, labels_train)
 
-print(model.classes_)
-print(model.class_count_)
-print(model.n_features_in_)
+# k-fold cross validation. param k can be adjusted
+k = 4
+scoring = ['f1_weighted', 'f1_micro', 'f1_macro']
+cv_results = cross_validate(model, features_train, labels_train,cv=k,
+                            scoring=scoring)
+
+for key, value in cv_results.items():
+    print(value, '\t', key)
+
+# pred = model.fit(features_train, labels_train)
+
+# print(model.classes_)
+# print(model.class_count_)
+# print(model.n_features_in_)
 
 # binary_balanc_predictions = model.predict(features_test)
-# binary_balanc_probs = model.predict_proba(labels_test)
 
-print(f'Acc on train set: {model.score(features_train, labels_train)}')
-print(f'Acc on validation set: {model.score(features_test, labels_test)}')
+# print(f'Acc on train set: {model.score(features_train, labels_train)}')
+# print(f'Acc on validation set: {model.score(features_test, labels_test)}')

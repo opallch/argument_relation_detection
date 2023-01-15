@@ -9,7 +9,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import pandas as pd
+pd.set_option('display.max_colwidth', None)
 
+CORPUS_PATH = './corpus/merged_corpus.csv'
 CSV_PATH = './instances/merged_instances.csv'
 RESULT_ROOT = './results/'
 if not os.path.exists(RESULT_ROOT): os.mkdir(RESULT_ROOT)
@@ -101,10 +103,10 @@ if __name__ == '__main__':
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
     ## (3a) K-cross validation for having a general overview on performance
-    for model_name in MODEL_NAMES:
-        write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
-                                         model_name=model_name,
-                                         result_root=RESULT_ROOT)
+    # for model_name in MODEL_NAMES:
+    #     write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
+    #                                      model_name=model_name,
+    #                                      result_root=RESULT_ROOT)
 
     ## (3b) Error Analysis with a fixed train-test set
     # Set the proportion of train and test set
@@ -118,15 +120,24 @@ if __name__ == '__main__':
                            labels_test, result_root=RESULT_ROOT)
 
     # Real models & Error Analysis
-    # for model_name in MODEL_NAMES:
-    #     model = train_model(features_train, labels_train, model_name = model_name)
-    #     # Scores
-    #     with open(os.path.join(RESULT_ROOT, f'{model_name}.txt'), 'a') as f_out:
-    #         print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
-    #         print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
+    for model_name in MODEL_NAMES:
+        model = train_model(features_train, labels_train, model_name = model_name)
+        # Scores
+        with open(os.path.join(RESULT_ROOT, f'{model_name}_scores.txt'), 'a') as f_out:
+            print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
+            print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
 
-    #     # TODO: plot ROC & AUC curves https://scikit-learn.org/0.15/auto_examples/plot_roc.html
+        # Error Analysis
+        # write correct classification and missclassification respectively in txt files
+        corpus_df = pd.read_csv(CORPUS_PATH)
+        predictions = model.predict(features_test)
+        with open(os.path.join(RESULT_ROOT, f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, f'{model_name}_misclassification.csv'), 'a') as f_misclass:
+            for i in range(0, len(predictions)):
+                orig_idx = orig_test[i]
+                raw_text = corpus_df.loc[orig_idx, 'raw_text']
+                if predictions[i] == labels_test[i]:
+                    print(f'{orig_idx},{raw_text}', file=f_rightclass)
+                else:
+                    print(f'{orig_idx},{raw_text}', file=f_misclass)
 
-    #     # Error Analysis
-    #     # TODO: write correct classification and missclassification respectively in txt files
-    #     binary_balanc_predictions = model.predict(features_test)
+        # TODO: ROC & AUC curves https://scikit-learn.org/0.15/auto_examples/plot_roc.html

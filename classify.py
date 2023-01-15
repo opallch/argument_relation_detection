@@ -1,19 +1,23 @@
 # https://lunalux.io/creating-your-first-machine-learning-classifier-with-sklearn/
+import os
+
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
-from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import train_test_split, cross_validate
-from sklearn.naive_bayes import GaussianNB, MultinomialNB, ComplementNB, \
-    BernoulliNB, CategoricalNB
-
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder
+import matplotlib.pyplot as plt
+import pandas as pd
+
 
 CSV_PATH = './instances/merged_instances.csv'
+RESULT_ROOT = './results/'
+if not os.path.exists(RESULT_ROOT): os.mkdir(RESULT_ROOT)
 
+MODEL_NAMES = ['svm', 'mlp', 'gaussian_nb']
+TEST_SIZE = 0.2
+K_CROSS_VALID = 4
 SEED = 44
 
 
@@ -35,70 +39,87 @@ def print_label_proportions(y_train, y_val):
             f'The validation set has {val_perc:.2f}% of datapoints with class {name}')
 
 
-# Read merged_instances
-df = pd.read_csv(CSV_PATH)
+def write_baseline_results(features_train, labels_train, features_test, labels_test, result_root=RESULT_ROOT):
+    # Set up DummyClassifier as Baseline
+    for strategy in ['most_frequent', 'prior', 'stratified', 'uniform']:
+        dummy_clf = DummyClassifier(strategy=strategy)
+        dummy_clf.fit(features_train, labels_train)
+        score = dummy_clf.score(features_test, labels_test)
 
-labels = np.asarray(df.label)
+        with open(os.path.join(result_root, 'baseline.txt'), 'a') as f_out:
+            print(f'Trivial baseline accuracy with strategy "{strategy}" is: {score}', 
+                    file = f_out)
 
-# Set labels
-labels_list = ["Comment", "Unrelated", "Support", "Refute"]
-print(labels_list)
 
-# Encode labels
-le = LabelEncoder()
-le.fit(labels_list)
-# apply encoding to labels
-labels_list = le.transform(labels_list)
-print(labels_list)
+def write_k_cross_validation_results(features_train, labels_train, k, model_name, result_root):
+    model = train_model(features_train, labels_train, model_name = model_name)
+    cv_results = cross_validate(
+                        model, 
+                        features_train, 
+                        labels_train,
+                        cv=k,
+                        scoring=['f1_weighted', 'f1_micro', 'f1_macro']
+                        )
 
-# print(le.inverse_transform(labels))
+    with open(os.path.join(result_root, f'{k}-cross_validation.txt'), 'a') as f_out:
+        print(f'{model_name}:', file=f_out)
+        for key, value in cv_results.items():
+            print(value, '\t', key, file=f_out)
 
-# Get rid of columns we don't need for classification
-df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus", "label"],
-                      axis=1)
 
-feature_vecs = df_selected.to_numpy() # or df_selected.values
+def train_model(features_train, labels_train, model_name='svm'):
+    '''Returns a trained model upon the name given. SVM is used by default.'''
+    if model_name == 'mlp':
+        model = MLPClassifier(verbose=False, random_state=SEED)
+    elif model_name == 'gaussian_nb':
+        model = GaussianNB()
+    else:
+        model = svm.SVC()
+    
+    model.fit(features_train, labels_train)
+    print(f'A {model_name} is trained!')
+    return model
 
-# Set the proportion of train and test set
-features_train, features_test, labels_train, labels_test = train_test_split(
- feature_vecs, labels, test_size=0.20, random_state=SEED)
-print_label_proportions(labels_train, labels_test)
 
-# Set up DummyClassifier as Baseline
-for strategy in ['most_frequent', 'prior', 'stratified', 'uniform']:
-    dummy_clf = DummyClassifier(strategy=strategy)
-    dummy_clf.fit(features_train, labels_train)
-    score = dummy_clf.score(features_test, labels_test)
+if __name__ == '__main__':
+    df = pd.read_csv(CSV_PATH)
+    
+    ## (1) Encode labels
+    le = LabelEncoder()
+    le.fit(["Comment", "Unrelated", "Support", "Refute"])
+    labels = le.transform(df.label) # apply encoding to labels
 
-    print(f'Trivial baseline accuracy with strategy {strategy} is: {score}')
+    ## (2) Prepare feature vectors
+    # Get rid of columns we don't need for classification
+    df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus", "label"],
+                        axis=1)
+    feature_vecs = df_selected.to_numpy() # or df_selected.values
 
-# print(features_train)
-# print(labels_train)
+    ## (3a) K-cross validation for having a general overview on performance
+    for model_name in MODEL_NAMES:
+        write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID, 
+                                        model_name=model_name, result_root=RESULT_ROOT)
 
-# Set up Gaussian Classifier and train the model
-# model = GaussianNB()
-model = MLPClassifier(verbose=True, random_state=SEED)
-# model = MultinomialNB()
-# model = svm.SVC()
+    ## (3b) Error Analysis with a fixed train-test set 
+    # Set the proportion of train and test set
+    features_train, features_test, labels_train, labels_test, orig_train, orig_test = train_test_split(
+    feature_vecs, labels, df.original_index_in_corpus.values, test_size=TEST_SIZE, random_state=SEED)
+    # print_label_proportions(labels_train, labels_test)
 
-pred = model.fit(features_train, labels_train)
+    # Baseline results
+    write_baseline_results(features_train, labels_train, features_test, labels_test, result_root=RESULT_ROOT)
 
-# k-fold cross validation. param k can be adjusted
-k = 4
-scoring = ['f1_weighted', 'f1_micro', 'f1_macro']
-cv_results = cross_validate(model, features_train, labels_train,cv=k,
-                            scoring=scoring)
-
-for key, value in cv_results.items():
-    print(value, '\t', key)
-
-# pred = model.fit(features_train, labels_train)
-
-# print(model.classes_)
-# print(model.class_count_)
-# print(model.n_features_in_)
-
-# binary_balanc_predictions = model.predict(features_test)
-
-# print(f'Acc on train set: {model.score(features_train, labels_train)}')
-# print(f'Acc on validation set: {model.score(features_test, labels_test)}')
+    # Real models & Error Analysis
+    # for model_name in MODEL_NAMES:
+    #     model = train_model(features_train, labels_train, model_name = model_name)
+    #     # Scores
+    #     with open(os.path.join(RESULT_ROOT, f'{model_name}.txt'), 'a') as f_out:
+    #         print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
+    #         print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
+        
+    #     # TODO: plot ROC & AUC curves https://scikit-learn.org/0.15/auto_examples/plot_roc.html    
+        
+    #     # Error Analysis
+    #     # TODO: write correct classification and missclassification respectively in txt files
+    #     binary_balanc_predictions = model.predict(features_test)
+    

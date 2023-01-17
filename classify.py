@@ -4,7 +4,7 @@ import os
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split, cross_validate
+from sklearn.model_selection import train_test_split, cross_validate, learning_curve, LearningCurveDisplay
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 
@@ -58,7 +58,7 @@ def write_baseline_results(features_train, labels_train, features_test,
 
 def write_k_cross_validation_results(features_train, labels_train, k,
                                      model_name, result_root):
-    model = train_model(features_train, labels_train, model_name=model_name)
+    model = create_model(features_train, labels_train, model_name=model_name)
     cv_results = cross_validate(
         model,
         features_train,
@@ -74,8 +74,10 @@ def write_k_cross_validation_results(features_train, labels_train, k,
             print(value, '\t', key, file=f_out)
 
 
-def train_model(features_train, labels_train, model_name='svm'):
-    '''Returns a trained model upon the name given. SVM is used by default.'''
+def create_model(features_train=[], labels_train=[], model_name='svm'):
+    '''Returns a trained model upon the name given. SVM is used by default.
+    If `features_train` is empty, an untrained model will be returned.
+    '''
     if model_name == 'mlp':
         model = MLPClassifier(verbose=False, random_state=SEED,
                               max_iter=ITERATIONS)
@@ -83,9 +85,11 @@ def train_model(features_train, labels_train, model_name='svm'):
         model = GaussianNB()
     else:
         model = svm.SVC()
-
-    model.fit(features_train, labels_train)
-    print(f'A {model_name} is trained!')
+    
+    if len(features_train) > 0 and len(labels_train) > 0:
+        model.fit(features_train, labels_train)
+        print(f'A {model_name} is trained!')
+    
     return model
 
 
@@ -99,15 +103,16 @@ if __name__ == '__main__':
                           axis=1)
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
-    ## (2) K-cross validation for having a general overview on performance
+    # (2) K-cross validation for having a general overview on performance
     # for model_name in MODEL_NAMES:
     #     write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
     #                                      model_name=model_name,
     #                                      result_root=RESULT_ROOT)
 
-
-    ## TODO (3) Learning Rate
-
+    ## TODO (3) Learning Curve Plots (subplot): https://scikit-learn.org/stable/auto_examples/model_selection/plot_learning_curve.html
+    for model_name in MODEL_NAMES:
+        model = create_model([], [], model_name = model_name)
+        LearningCurveDisplay.from_estimator(model)
 
     ## (4) Error Analysis with a fixed train-test set
     # Set the proportion of train and test set
@@ -121,11 +126,7 @@ if __name__ == '__main__':
 
     # Real models & Error Analysis
     for model_name in MODEL_NAMES:
-        model = train_model(features_train, labels_train, model_name = model_name)
-        # Scores: replaced by classification_report()
-        # with open(os.path.join(RESULT_ROOT, f'{model_name}_scores.txt'), 'a') as f_out:
-        #     print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
-        #     print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
+        model = create_model(features_train, labels_train, model_name = model_name)
 
         # Error Analysis
         # (A) write correct classification and missclassification respectively in txt files
@@ -141,13 +142,18 @@ if __name__ == '__main__':
                 else:
                     print(f'{orig_idx},{raw_text}', file=f_misclass)
 
+        # (B) Scores: on test set v.s. training set
+        predictions_train = model.predict(features_train)
         with open(os.path.join(RESULT_ROOT, f'{model_name}_classification_report.txt'), 'a') as f_out:
+            print("========== Test Set ==========")
             print(classification_report(labels_test, predictions_test), file=f_out)
+            print("========== Training Set ==========")
+            print(classification_report(labels_train, predictions_train), file=f_out)
         
-        # (B) Confusion Matrix, see what was often misclassified
+        # (C) Confusion Matrix, see what was often misclassified
+        # TODO: merge plots using subplot()
         ConfusionMatrixDisplay.from_predictions(labels_test, predictions_test, normalize='true',
                                         xticks_rotation='vertical')
+        plt.title(f'{model_name}')
         plt.savefig(os.path.join(RESULT_ROOT, f'{model_name}_conf_mat.png'))
-        
-        break
         

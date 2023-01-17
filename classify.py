@@ -3,10 +3,12 @@ import os
 
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelEncoder
+
 import matplotlib.pyplot as plt
 import pandas as pd
 pd.set_option('display.max_colwidth', None)
@@ -108,36 +110,49 @@ if __name__ == '__main__':
     #                                      model_name=model_name,
     #                                      result_root=RESULT_ROOT)
 
-    ## (3b) Error Analysis with a fixed train-test set
+
+    ## TODO (3b) Learning Rate
+
+
+    ## (3c) Error Analysis with a fixed train-test set
     # Set the proportion of train and test set
     features_train, features_test, labels_train, labels_test, orig_train, orig_test = train_test_split(
         feature_vecs, labels, df.original_index_in_corpus.values,
         test_size=TEST_SIZE, random_state=SEED)
-    # print_label_proportions(labels_train, labels_test)
 
     # Baseline results
-    write_baseline_results(features_train, labels_train, features_test,
-                           labels_test, result_root=RESULT_ROOT)
+    # write_baseline_results(features_train, labels_train, features_test,
+    #                        labels_test, result_root=RESULT_ROOT)
 
     # Real models & Error Analysis
     for model_name in MODEL_NAMES:
         model = train_model(features_train, labels_train, model_name = model_name)
-        # Scores
-        with open(os.path.join(RESULT_ROOT, f'{model_name}_scores.txt'), 'a') as f_out:
-            print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
-            print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
+        # Scores: replaced by classification_report()
+        # with open(os.path.join(RESULT_ROOT, f'{model_name}_scores.txt'), 'a') as f_out:
+        #     print(f'Acc on train set: {model.score(features_train, labels_train)}', file=f_out)
+        #     print(f'Acc on validation set: {model.score(features_test, labels_test)}', file=f_out)
 
         # Error Analysis
-        # write correct classification and missclassification respectively in txt files
+        # (A) write correct classification and missclassification respectively in txt files
         corpus_df = pd.read_csv(CORPUS_PATH)
-        predictions = model.predict(features_test)
+        predictions_test = model.predict(features_test)
+        
         with open(os.path.join(RESULT_ROOT, f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, f'{model_name}_misclassification.csv'), 'a') as f_misclass:
-            for i in range(0, len(predictions)):
+            for i in range(0, len(predictions_test)):
                 orig_idx = orig_test[i]
                 raw_text = corpus_df.loc[orig_idx, 'raw_text']
-                if predictions[i] == labels_test[i]:
+                if predictions_test[i] == labels_test[i]:
                     print(f'{orig_idx},{raw_text}', file=f_rightclass)
                 else:
                     print(f'{orig_idx},{raw_text}', file=f_misclass)
 
-        # TODO: ROC & AUC curves https://scikit-learn.org/0.15/auto_examples/plot_roc.html
+        with open(os.path.join(RESULT_ROOT, f'{model_name}_classification_report.txt'), 'a') as f_out:
+            print(classification_report(labels_test, predictions_test), file=f_out)
+        
+        # (B) Confusion Matrix, see what was often misclassified
+        ConfusionMatrixDisplay.from_predictions(labels_test, predictions_test, normalize='true',
+                                        xticks_rotation='vertical')
+        plt.savefig(os.path.join(RESULT_ROOT, f'{model_name}_conf_mat.png'))
+        
+        break
+        

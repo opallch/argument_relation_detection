@@ -7,7 +7,6 @@ from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 from sklearn.model_selection import train_test_split, cross_validate
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import LabelEncoder
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -93,36 +92,32 @@ def train_model(features_train, labels_train, model_name='svm'):
 if __name__ == '__main__':
     df = pd.read_csv(CSV_PATH)
 
-    ## (1) Encode labels
-    le = LabelEncoder()
-    le.fit(["Comment", "Unrelated", "Support", "Refute"])
-    labels = le.transform(df.label)  # apply encoding to labels
-
-    ## (2) Prepare feature vectors
+    ## (1) Prepare feature vectors
     # Get rid of columns we don't need for classification
+    labels = df.label.values
     df_selected = df.drop(["Unnamed: 0", "original_index_in_corpus", "label"],
                           axis=1)
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
-    ## (3a) K-cross validation for having a general overview on performance
+    ## (2) K-cross validation for having a general overview on performance
     # for model_name in MODEL_NAMES:
     #     write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
     #                                      model_name=model_name,
     #                                      result_root=RESULT_ROOT)
 
 
-    ## TODO (3b) Learning Rate
+    ## TODO (3) Learning Rate
 
 
-    ## (3c) Error Analysis with a fixed train-test set
+    ## (4) Error Analysis with a fixed train-test set
     # Set the proportion of train and test set
     features_train, features_test, labels_train, labels_test, orig_train, orig_test = train_test_split(
         feature_vecs, labels, df.original_index_in_corpus.values,
         test_size=TEST_SIZE, random_state=SEED)
 
     # Baseline results
-    # write_baseline_results(features_train, labels_train, features_test,
-    #                        labels_test, result_root=RESULT_ROOT)
+    write_baseline_results(features_train, labels_train, features_test,
+                           labels_test, result_root=RESULT_ROOT)
 
     # Real models & Error Analysis
     for model_name in MODEL_NAMES:

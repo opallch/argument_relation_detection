@@ -3,7 +3,7 @@ import os
 
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import classification_report, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay, confusion_matrix
 from sklearn.model_selection import LearningCurveDisplay
 from sklearn.model_selection import train_test_split, cross_validate, LearningCurveDisplay
 from sklearn.neural_network import MLPClassifier
@@ -112,7 +112,7 @@ if __name__ == '__main__':
                                          result_root=RESULT_ROOT)
 
     ## (3) Learning Curve Plots
-    for i, model_name in enumerate(MODEL_NAMES):
+    for model_idx, model_name in enumerate(MODEL_NAMES):
         model = create_model([], [], model_name = model_name)
         LearningCurveDisplay.from_estimator(model, 
                                             feature_vecs, 
@@ -120,10 +120,10 @@ if __name__ == '__main__':
                                             train_sizes=[0.25, 0.5, 0.75, 1.0], 
                                             cv=4, 
                                             score_type='both', 
-                                            ax=axs[i])
-        handles, label = axs[i].get_legend_handles_labels()
-        axs[i].legend(handles[:2], ["Training Score", "Test Score"])
-        axs[i].set_title(f"Learning Curve for {model.__class__.__name__}")
+                                            ax=axs[model_idx])
+        handles, label = axs[model_idx].get_legend_handles_labels()
+        axs[model_idx].legend(handles[:2], ["Training Score", "Test Score"])
+        axs[model_idx].set_title(f"Learning Curve for {model.__class__.__name__}")
     plt.savefig(os.path.join(RESULT_ROOT, f'learning_curve.png'))
     
 
@@ -138,7 +138,7 @@ if __name__ == '__main__':
                            labels_test, result_root=RESULT_ROOT)
 
     # Real models & Error Analysis
-    for i, model_name in enumerate(MODEL_NAMES):
+    for model_idx, model_name in enumerate(MODEL_NAMES):
         model = create_model(features_train, labels_train, model_name = model_name)
 
         # Error Analysis
@@ -161,20 +161,21 @@ if __name__ == '__main__':
 
         # (B) Scores: on test set v.s. training set
         predictions_train = model.predict(features_train)
-        with open(os.path.join(RESULT_ROOT, f'{model_name}_classification_report.txt'), 'a') as f_out:
+        with open(os.path.join(RESULT_ROOT, f'classification_report.txt'), 'a') as f_out:
+            print(model.__class__.__name__, file=f_out)
             print("========== Test Set ==========", file=f_out)
             print(classification_report(labels_test, predictions_test), file=f_out)
             print("========== Training Set ==========", file=f_out)
             print(classification_report(labels_train, predictions_train), file=f_out)
         
         # (C) Confusion Matrix, see what was often misclassified
-        # TODO: merge plots using subplot()
         ConfusionMatrixDisplay.from_predictions(labels_test, 
-                                                    predictions_test, 
-                                                    normalize='true',
-                                                    xticks_rotation='vertical',
-                                                    score_type='both', 
-                                                    ax=axs[i]
-                                                    )
-        axs[i].set_title(f"Confusion Matrix for {model.__class__.__name__}")
+                                                predictions_test, 
+                                                normalize='true',
+                                                xticks_rotation='vertical',
+                                                ax=axs[model_idx]
+                                                )
+        axs[model_idx].set_title(f"Confusion Matrix for {model.__class__.__name__}")
+        axs[model_idx].get_legend().remove()
+
     plt.savefig(os.path.join(RESULT_ROOT, f'confusion_matrix.png'))

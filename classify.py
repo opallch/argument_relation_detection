@@ -10,7 +10,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 
 import matplotlib.pyplot as plt
-# fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 6), sharey=True)
+fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6), sharey=True)
 import pandas as pd
 pd.set_option('display.max_colwidth', None)
 
@@ -19,7 +19,7 @@ CSV_PATH = './instances/merged_instances.csv'
 RESULT_ROOT = './results/'
 if not os.path.exists(RESULT_ROOT): os.mkdir(RESULT_ROOT)
 
-MODEL_NAMES = ['svm', 'mlp', 'gaussian_nb']
+MODEL_NAMES = ['svm', 'gaussian_nb'] # ['svm', 'mlp', 'gaussian_nb']
 TEST_SIZE = 0.2
 K_CROSS_VALID = 4
 ITERATIONS = 200
@@ -106,20 +106,25 @@ if __name__ == '__main__':
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
     ## (2) K-cross validation for having a general overview on performance
-    # for model_name in MODEL_NAMES:
-    #     write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
-    #                                      model_name=model_name,
-    #                                      result_root=RESULT_ROOT)
+    for model_name in MODEL_NAMES:
+        write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
+                                         model_name=model_name,
+                                         result_root=RESULT_ROOT)
 
     ## (3) Learning Curve Plots
-    # TODO: subplot, set legend for test and training set
     for i, model_name in enumerate(MODEL_NAMES):
         model = create_model([], [], model_name = model_name)
-        LearningCurveDisplay.from_estimator(model, feature_vecs, labels, train_sizes=[0.25, 0.5, 0.75, 1.0], cv=5)
-        plt.savefig(os.path.join(RESULT_ROOT, f'{model_name}_learning_curve.png'))
-        # handles, label = ax[i].get_legend_handles_labels()
-        # ax[i].legend(handles[:2], ["Training Score", "Test Score"])
-        #ax[i].set_title(f"Learning Curve for {model.__class__.__name__}")
+        LearningCurveDisplay.from_estimator(model, 
+                                            feature_vecs, 
+                                            labels, 
+                                            train_sizes=[0.25, 0.5, 0.75, 1.0], 
+                                            cv=4, 
+                                            score_type='both', 
+                                            ax=axs[i])
+        handles, label = axs[i].get_legend_handles_labels()
+        axs[i].legend(handles[:2], ["Training Score", "Test Score"])
+        axs[i].set_title(f"Learning Curve for {model.__class__.__name__}")
+    plt.savefig(os.path.join(RESULT_ROOT, f'learning_curve.png'))
     
 
     ## (4) Error Analysis with a fixed train-test set
@@ -133,7 +138,7 @@ if __name__ == '__main__':
                            labels_test, result_root=RESULT_ROOT)
 
     # Real models & Error Analysis
-    for model_name in MODEL_NAMES:
+    for i, model_name in enumerate(MODEL_NAMES):
         model = create_model(features_train, labels_train, model_name = model_name)
 
         # Error Analysis
@@ -142,13 +147,17 @@ if __name__ == '__main__':
         predictions_test = model.predict(features_test)
         
         with open(os.path.join(RESULT_ROOT, f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, f'{model_name}_misclassification.csv'), 'a') as f_misclass:
+            print('orig_idx,raw_text,translated_from', file=f_rightclass)
+            print('orig_idx,raw_text,translated_from', file=f_misclass)
+            
             for i in range(0, len(predictions_test)):
                 orig_idx = orig_test[i]
                 raw_text = corpus_df.loc[orig_idx, 'raw_text']
+                translated_from = corpus_df.loc[orig_idx, 'translated_from']
                 if predictions_test[i] == labels_test[i]:
-                    print(f'{orig_idx},{raw_text}', file=f_rightclass)
+                    print(f'{orig_idx},{raw_text},{translated_from}', file=f_rightclass)
                 else:
-                    print(f'{orig_idx},{raw_text}', file=f_misclass)
+                    print(f'{orig_idx},{raw_text},{translated_from}', file=f_misclass)
 
         # (B) Scores: on test set v.s. training set
         predictions_train = model.predict(features_train)
@@ -160,8 +169,12 @@ if __name__ == '__main__':
         
         # (C) Confusion Matrix, see what was often misclassified
         # TODO: merge plots using subplot()
-        ConfusionMatrixDisplay.from_predictions(labels_test, predictions_test, normalize='true',
-                                        xticks_rotation='vertical')
-        plt.title(f'{model_name}')
-        plt.savefig(os.path.join(RESULT_ROOT, f'{model_name}_conf_mat.png'))
-        
+        ConfusionMatrixDisplay.from_predictions(labels_test, 
+                                                    predictions_test, 
+                                                    normalize='true',
+                                                    xticks_rotation='vertical',
+                                                    score_type='both', 
+                                                    ax=axs[i]
+                                                    )
+        axs[i].set_title(f"Confusion Matrix for {model.__class__.__name__}")
+    plt.savefig(os.path.join(RESULT_ROOT, f'confusion_matrix.png'))

@@ -1,0 +1,75 @@
+SVC
+========== Test Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.42      0.81      0.55        78
+      Refute       0.00      0.00      0.00        19
+     Support       1.00      0.04      0.08        49
+   Unrelated       0.55      0.51      0.53        91
+
+    accuracy                           0.47       237
+   macro avg       0.49      0.34      0.29       237
+weighted avg       0.55      0.47      0.40       237
+
+========== Training Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.59      0.87      0.70       394
+      Refute       1.00      0.02      0.04        93
+     Support       1.00      0.16      0.27       147
+   Unrelated       0.59      0.65      0.62       311
+
+    accuracy                           0.60       945
+   macro avg       0.80      0.42      0.41       945
+weighted avg       0.70      0.60      0.54       945
+
+MLPClassifier
+========== Test Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.38      0.64      0.48        78
+      Refute       0.00      0.00      0.00        19
+     Support       0.38      0.16      0.23        49
+   Unrelated       0.47      0.42      0.44        91
+
+    accuracy                           0.41       237
+   macro avg       0.31      0.31      0.29       237
+weighted avg       0.39      0.41      0.38       237
+
+========== Training Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.71      0.89      0.79       394
+      Refute       0.73      0.41      0.52        93
+     Support       0.86      0.51      0.64       147
+   Unrelated       0.75      0.77      0.76       311
+
+    accuracy                           0.74       945
+   macro avg       0.76      0.64      0.68       945
+weighted avg       0.75      0.74      0.73       945
+
+GaussianNB
+========== Test Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.45      0.65      0.53        78
+      Refute       0.11      0.11      0.11        19
+     Support       0.28      0.22      0.25        49
+   Unrelated       0.51      0.36      0.42        91
+
+    accuracy                           0.41       237
+   macro avg       0.34      0.34      0.33       237
+weighted avg       0.41      0.41      0.40       237
+
+========== Training Set ==========
+              precision    recall  f1-score   support
+
+     Comment       0.56      0.61      0.59       394
+      Refute       0.24      0.19      0.21        93
+     Support       0.29      0.37      0.32       147
+   Unrelated       0.48      0.40      0.43       311
+
+    accuracy                           0.46       945
+   macro avg       0.39      0.39      0.39       945
+weighted avg       0.46      0.46      0.46       945
+

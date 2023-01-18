@@ -3,14 +3,14 @@ import os
 
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import classification_report, ConfusionMatrixDisplay, confusion_matrix
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay
 from sklearn.model_selection import LearningCurveDisplay
 from sklearn.model_selection import train_test_split, cross_validate, LearningCurveDisplay
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 
 import matplotlib.pyplot as plt
-fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(10, 6), sharey=True)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(15, 5), sharey=True)
 import pandas as pd
 pd.set_option('display.max_colwidth', None)
 
@@ -19,7 +19,7 @@ CSV_PATH = './instances/merged_instances.csv'
 RESULT_ROOT = './results/'
 if not os.path.exists(RESULT_ROOT): os.mkdir(RESULT_ROOT)
 
-MODEL_NAMES = ['svm', 'gaussian_nb'] # ['svm', 'mlp', 'gaussian_nb']
+MODEL_NAMES = ['svm', 'mlp', 'gaussian_nb']
 TEST_SIZE = 0.2
 K_CROSS_VALID = 4
 ITERATIONS = 200
@@ -120,10 +120,11 @@ if __name__ == '__main__':
                                             train_sizes=[0.25, 0.5, 0.75, 1.0], 
                                             cv=4, 
                                             score_type='both', 
-                                            ax=axs[model_idx])
-        handles, label = axs[model_idx].get_legend_handles_labels()
-        axs[model_idx].legend(handles[:2], ["Training Score", "Test Score"])
-        axs[model_idx].set_title(f"Learning Curve for {model.__class__.__name__}")
+                                            ax=axes[model_idx]
+                                            )
+        handles, label = axes[model_idx].get_legend_handles_labels()
+        axes[model_idx].legend(handles[:2], ["Training Score", "Test Score"])
+        axes[model_idx].set_title(f"Learning Curve for {model.__class__.__name__}")
     plt.savefig(os.path.join(RESULT_ROOT, f'learning_curve.png'))
     
 
@@ -173,9 +174,9 @@ if __name__ == '__main__':
                                                 predictions_test, 
                                                 normalize='true',
                                                 xticks_rotation='vertical',
-                                                ax=axs[model_idx]
+                                                ax=axes[model_idx]
                                                 )
-        axs[model_idx].set_title(f"Confusion Matrix for {model.__class__.__name__}")
-        axs[model_idx].get_legend().remove()
+        axes[model_idx].set_title(f"Confusion Matrix for {model.__class__.__name__}")
+        axes[model_idx].get_legend().remove() # remove the legend from the learning curves plots
 
     plt.savefig(os.path.join(RESULT_ROOT, f'confusion_matrix.png'))

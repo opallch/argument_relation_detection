@@ -1,4 +1,4 @@
 Trivial baseline accuracy with strategy "most_frequent" is: 0.3291139240506329
 Trivial baseline accuracy with strategy "prior" is: 0.3291139240506329
-Trivial baseline accuracy with strategy "stratified" is: 0.29957805907172996
-Trivial baseline accuracy with strategy "uniform" is: 0.3037974683544304
+Trivial baseline accuracy with strategy "stratified" is: 0.2742616033755274
+Trivial baseline accuracy with strategy "uniform" is: 0.2911392405063291

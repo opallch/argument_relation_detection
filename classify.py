@@ -18,6 +18,7 @@ CORPUS_PATH = './corpus/merged_corpus.csv'
 CSV_PATH = './instances/merged_instances.csv'
 RESULT_ROOT = './results/'
 if not os.path.exists(RESULT_ROOT): os.mkdir(RESULT_ROOT)
+if not os.path.exists(os.path.join(RESULT_ROOT, 'error_analysis')): os.mkdir(os.path.join(RESULT_ROOT, 'error_analysis'))
 
 MODEL_NAMES = ['svm', 'mlp', 'gaussian_nb']
 TEST_SIZE = 0.2
@@ -71,7 +72,7 @@ def write_k_cross_validation_results(features_train, labels_train, k,
 
     with open(os.path.join(result_root, f'{k}-cross_validation.txt'),
               'a') as f_out:
-        print(f'{model_name}:', file=f_out)
+        print(f'{model.__class__.__name__}:', file=f_out)
         for key, value in cv_results.items():
             print(value, '\t', key, file=f_out)
 
@@ -105,13 +106,30 @@ if __name__ == '__main__':
                           axis=1)
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
-    ## (2) K-cross validation for having a general overview on performance
+    ## (2) 4-cross validation for having a general overview on performance
+    # (A) f-scores (macro, micro, weighted)
     for model_name in MODEL_NAMES:
         write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
                                          model_name=model_name,
                                          result_root=RESULT_ROOT)
+    # baseline
+    for strategy in ['most_frequent', 'prior', 'stratified', 'uniform']:
+        dummy_clf = DummyClassifier(strategy=strategy)
+        cv_results = cross_validate(
+        dummy_clf,
+        feature_vecs,
+        labels,
+        cv=K_CROSS_VALID,
+        scoring=['f1_weighted', 'f1_micro', 'f1_macro']
+        )
 
-    ## (3) Learning Curve Plots
+        with open(os.path.join(RESULT_ROOT, f'{K_CROSS_VALID}-cross_validation.txt'),'a') as f_out:
+            print(f'{dummy_clf.__class__.__name__}({strategy}):', file=f_out)
+            for key, value in cv_results.items():
+                print(value, '\t', key, file=f_out)
+
+
+    # (B) Learning Curve Plots
     for model_idx, model_name in enumerate(MODEL_NAMES):
         model = create_model([], [], model_name = model_name)
         LearningCurveDisplay.from_estimator(model, 
@@ -127,8 +145,9 @@ if __name__ == '__main__':
         axes[model_idx].set_title(f"Learning Curve for {model.__class__.__name__}")
     plt.savefig(os.path.join(RESULT_ROOT, f'learning_curve.png'))
     
+    ############################
 
-    ## (4) Error Analysis with a fixed train-test set
+    ## (3) Fixed train-test set
     # Set the proportion of train and test set
     features_train, features_test, labels_train, labels_test, orig_train, orig_test = train_test_split(
         feature_vecs, labels, df.original_index_in_corpus.values,
@@ -142,12 +161,11 @@ if __name__ == '__main__':
     for model_idx, model_name in enumerate(MODEL_NAMES):
         model = create_model(features_train, labels_train, model_name = model_name)
 
-        # Error Analysis
-        # (A) write correct classification and missclassification respectively in txt files
+        # (A) Error Analysis: write correct classification and missclassification respectively in txt files
         corpus_df = pd.read_csv(CORPUS_PATH)
         predictions_test = model.predict(features_test)
         
-        with open(os.path.join(RESULT_ROOT, f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, f'{model_name}_misclassification.csv'), 'a') as f_misclass:
+        with open(os.path.join(RESULT_ROOT, 'error_analysis', f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, 'error_analysis', f'{model_name}_misclassification.csv'), 'a') as f_misclass:
             print('orig_idx,raw_text,translated_from', file=f_rightclass)
             print('orig_idx,raw_text,translated_from', file=f_misclass)
             

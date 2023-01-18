@@ -4,11 +4,13 @@ import os
 from sklearn import svm
 from sklearn.dummy import DummyClassifier
 from sklearn.metrics import classification_report, ConfusionMatrixDisplay
-from sklearn.model_selection import train_test_split, cross_validate, learning_curve, LearningCurveDisplay
-from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import LearningCurveDisplay
+from sklearn.model_selection import train_test_split, cross_validate, LearningCurveDisplay
 from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import GaussianNB
 
 import matplotlib.pyplot as plt
+# fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(10, 6), sharey=True)
 import pandas as pd
 pd.set_option('display.max_colwidth', None)
 
@@ -103,16 +105,22 @@ if __name__ == '__main__':
                           axis=1)
     feature_vecs = df_selected.to_numpy()  # or df_selected.values
 
-    # (2) K-cross validation for having a general overview on performance
+    ## (2) K-cross validation for having a general overview on performance
     # for model_name in MODEL_NAMES:
     #     write_k_cross_validation_results(feature_vecs, labels, k=K_CROSS_VALID,
     #                                      model_name=model_name,
     #                                      result_root=RESULT_ROOT)
 
-    ## TODO (3) Learning Curve Plots (subplot): https://scikit-learn.org/stable/auto_examples/model_selection/plot_learning_curve.html
-    for model_name in MODEL_NAMES:
+    ## (3) Learning Curve Plots
+    # TODO: subplot, set legend for test and training set
+    for i, model_name in enumerate(MODEL_NAMES):
         model = create_model([], [], model_name = model_name)
-        LearningCurveDisplay.from_estimator(model)
+        LearningCurveDisplay.from_estimator(model, feature_vecs, labels, train_sizes=[0.25, 0.5, 0.75, 1.0], cv=5)
+        plt.savefig(os.path.join(RESULT_ROOT, f'{model_name}_learning_curve.png'))
+        # handles, label = ax[i].get_legend_handles_labels()
+        # ax[i].legend(handles[:2], ["Training Score", "Test Score"])
+        #ax[i].set_title(f"Learning Curve for {model.__class__.__name__}")
+    
 
     ## (4) Error Analysis with a fixed train-test set
     # Set the proportion of train and test set
@@ -145,9 +153,9 @@ if __name__ == '__main__':
         # (B) Scores: on test set v.s. training set
         predictions_train = model.predict(features_train)
         with open(os.path.join(RESULT_ROOT, f'{model_name}_classification_report.txt'), 'a') as f_out:
-            print("========== Test Set ==========")
+            print("========== Test Set ==========", file=f_out)
             print(classification_report(labels_test, predictions_test), file=f_out)
-            print("========== Training Set ==========")
+            print("========== Training Set ==========", file=f_out)
             print(classification_report(labels_train, predictions_train), file=f_out)
         
         # (C) Confusion Matrix, see what was often misclassified

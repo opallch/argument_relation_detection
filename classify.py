@@ -166,17 +166,26 @@ if __name__ == '__main__':
         predictions_test = model.predict(features_test)
         
         with open(os.path.join(RESULT_ROOT, 'error_analysis', f'{model_name}_right_classification.csv'), 'a') as f_rightclass, open(os.path.join(RESULT_ROOT, 'error_analysis', f'{model_name}_misclassification.csv'), 'a') as f_misclass:
-            print('orig_idx,raw_text,translated_from', file=f_rightclass)
-            print('orig_idx,raw_text,translated_from', file=f_misclass)
+            print('orig_idx,raw_text,orig_label,predicted_label,'
+                  'translated_from',
+                  file=f_rightclass)
+            print('orig_idx,raw_text,orig_label,predicted_label,'
+                  'translated_from', file=f_misclass)
             
             for i in range(0, len(predictions_test)):
                 orig_idx = orig_test[i]
                 raw_text = corpus_df.loc[orig_idx, 'raw_text']
                 translated_from = corpus_df.loc[orig_idx, 'translated_from']
+                orig_label = corpus_df.loc[orig_idx, 'label']
+                predicted_label = predictions_test[i]
                 if predictions_test[i] == labels_test[i]:
-                    print(f'{orig_idx},{raw_text},{translated_from}', file=f_rightclass)
+                    print(f'{orig_idx},{raw_text},'
+                          f'{orig_label}',{predicted_label},{translated_from},
+                          file=f_rightclass)
                 else:
-                    print(f'{orig_idx},{raw_text},{translated_from}', file=f_misclass)
+                    print(f'{orig_idx},{raw_text},{orig_label}',
+                          {predicted_label},{translated_from},
+                          file=f_misclass)
 
         # (B) Scores: on test set v.s. training set
         predictions_train = model.predict(features_train)

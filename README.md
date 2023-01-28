@@ -1,10 +1,9 @@
-# Argument Relation Detection 
-For a seminar project in the scope of the Argument Mining seminar in 
-Wintersemester 2022/23 at the University of Potsdam, we recreate the study 
-of ___ working with the Opinion Mining Corpus on German Tweets about the 
-Covid-19 Pandemic.
+# Argument Relation Detection
+This project conducts a Supervised Classification on a corpus about the 
+government measures during the Covid-19 Pandemic. It was done within the 
+scope of an Argument Mining seminar in Wintersemester 2022/23 at the University of Potsdam
 
-Link to corpus:   
+Link to the original corpus:   
 https://tudatalib.ulb.tu-darmstadt.de/handle/tudatalib/2780
 
 ## Data Preprocessing
@@ -12,7 +11,7 @@ The preprocessed data can be found in `corpus/`, where **`merged_instances.csv`*
 (and should be) used further for feature engineering, since it contains both expert and 
 student annotated data, which are already preprocessed. 
 
-Files in `./corpus/tmp/` are temporary corpus produced at difference data 
+Files in `./corpus/tmp/` are temporary corpus produced at different data 
 preprocessing stages, e.g. Files with suffix `_clean_translated` indicates 
 that the raw text of the tweets are already cleaned (e.g. URLs are removed) as follows:
     1. URLs are removed 
@@ -37,3 +36,11 @@ The instances are stored in `instances/merged_instances.csv` in the following fo
 - The size of the document embedding vector, n, can be defined in `instances/merged_instances.csv`
 (50 was our choice).
 - `original_index_in_corpus` is saved for retrieving the raw text from the corpus.
+
+## Classification
+In `classify.py` three models are set up and trained on the 
+corpus. The parameters of test size, cross validation fold size and 
+iterations can be modified. Furthermore, a DummyClassifier using four 
+different strategies is set up. The models LearningCurves and 
+the ConfusionMatrixes are plotted. All the results are stored in the 
+`results` folder.

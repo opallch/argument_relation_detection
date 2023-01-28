@@ -1,7 +1,8 @@
 # Argument Relation Detection
 This project conducts a Supervised Classification on a corpus about the 
 government measures during the Covid-19 Pandemic. It was done within the 
-scope of an Argument Mining seminar in Wintersemester 2022/23 at the University of Potsdam
+scope of an Argument Mining seminar in Wintersemester 2022/23 at the 
+University of Potsdam.
 
 Link to the original corpus:   
 https://tudatalib.ulb.tu-darmstadt.de/handle/tudatalib/2780

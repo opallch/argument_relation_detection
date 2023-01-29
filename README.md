@@ -42,6 +42,6 @@ The instances are stored in `instances/merged_instances.csv` in the following fo
 In `classify.py` three models are set up and trained on the 
 corpus. The parameters of test size, cross validation fold size and 
 iterations can be modified. Furthermore, a DummyClassifier using four 
-different strategies is set up. The models LearningCurves and 
+different strategies is set up. The models' LearningCurves and 
 the ConfusionMatrixes are plotted. All the results are stored in the 
 `results` folder.

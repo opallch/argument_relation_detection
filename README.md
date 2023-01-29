@@ -45,3 +45,8 @@ iterations can be modified. Furthermore, a DummyClassifier using four
 different strategies is set up. The models' LearningCurves and 
 the ConfusionMatrixes are plotted. All the results are stored in the 
 `results` folder.
+
+## Statistics helper scripts
+- `class_stat.py` can be used to give the label distribution of a csv file.
+- `results_stat.py` can be used to give the distribution of 
+translated tweets in a csv file.
